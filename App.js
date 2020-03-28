@@ -1,32 +1,35 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, TextInput, Text, Button} from 'react-native';
+import {StyleSheet, View, FlatList, Button} from 'react-native';
+import GoalItem from "./components/GoalItem";
+import GoalInput from "./components/GoalInput";
 
 export default function App() {
-  const [enteredGoal, setEnteredGoal] = useState('');
   const [courseGoals, setCourseGoals] = useState([]);
+  const [isAddMode, setIsAddMode] = useState(false);
 
-  const goalInputHandler = (enteredText) => {
-    setEnteredGoal(enteredText);
-  };
-
-  const addGoalHandler = () => {
-    if(enteredGoal.length > 0) {
-      setCourseGoals(currentGoals => [...currentGoals, enteredGoal]);
+  const addGoalHandler = goalTitle => {
+    if(goalTitle.length > 0) {
+      setCourseGoals(currentGoals => [...currentGoals, { id: Math.random().toString(), value: goalTitle }]);
     }
-
-    setEnteredGoal("");
+    setIsAddMode(false);
   };
+
+  const cancelGoalHandler = () => {
+    setIsAddMode(false);
+  };
+
+  const removeGoalHandler = goalId => {
+    setCourseGoals(currentGoals => {
+      return currentGoals.filter((goal) => goal.id != goalId);
+    });
+  }
 
   return (
     <View style={styles.screen}>
-      <View style={styles.inputContainer}>
-        <TextInput placeholder={"Course Goal"} style={styles.input} onChangeText={goalInputHandler}
-        value={enteredGoal}/>
-        <Button title={"ADD"} onPress={addGoalHandler}/>
-      </View>
-      <View>
-        {courseGoals.map((goal, i) => <Text key={i}>{goal}</Text>)}
-      </View>
+      <Button title={"Add new goal"} onPress={() => setIsAddMode(true)}/>
+      <GoalInput onAddGoal={addGoalHandler} visible={isAddMode} onCancel={cancelGoalHandler}/>
+      <FlatList data={courseGoals} renderItem={itemData =>
+        (<GoalItem id={itemData.item.id} title={itemData.item.value} onDelete={(id) => removeGoalHandler(id)}/>)}/>
     </View>
   );
 }
@@ -34,17 +37,6 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     padding: 50
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  input: {
-    width: '80%',
-    borderBottomColor: 'black',
-    borderBottomWidth: 1,
-    padding: 10
   }
 });
 
